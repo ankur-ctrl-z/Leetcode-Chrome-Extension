@@ -1,0 +1,27 @@
+{
+    "name": "Leetcode chrome extension",
+    "manifest_version" : 3,
+    "version" : "1.0",
+
+    "permission" : ["scripting", "activeTab", "storage"],
+
+    "action" : {
+        "default_popup" : "popup.html",
+        "default_icon" : "icon.png"
+    },
+
+    "content_script" : [
+        {
+            "matches": ["<all_urls"],
+             "js" : ["content.js"]
+        }
+    ],
+
+    "background" : {
+        "service_worker" : "background.js"
+    },
+
+    "options_page" : "options.html",
+
+    "host_permission" : ["<all_urls"]
+}
