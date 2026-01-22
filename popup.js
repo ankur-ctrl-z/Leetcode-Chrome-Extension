@@ -1,38 +1,36 @@
 document.getElementById("hint").addEventListener("click", async () => {
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = '<div class="loading"><div class="loader"></div></div>';
+  resultDiv.innerText = "Loading...";
 
-  const Hint_Type = document.getElementById("Hint-type").value;
+  const hintType = document.getElementById("hint-type").value;
 
-  chrome.storage.sync.get(["geminiApiKey"], async (result) => {
+  chrome.storage.sync.get(["geminiApiKey"], (result) => {
     if (!result.geminiApiKey) {
-      resultDiv.innerHTML =
-        "API key not found. Please set your API key in the extension options.";
+      resultDiv.innerText = "API key missing. Set it in options.";
       return;
-    } 
+    }
 
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs.length) return;
+
       chrome.tabs.sendMessage(
-        tab.id,
+        tabs[0].id,
         { type: "GET_ARTICLE_TEXT" },
         async (res) => {
           if (!res || !res.text) {
-            resultDiv.innerText =
-              "Could not extract article text from this page.";
+            resultDiv.innerText = "Unable to read problem.";
             return;
           }
 
           try {
-            const summary = await getGeminiSummary(
+            const hint = await getGeminiHint(
               res.text,
-              Hint_Type,
+              hintType,
               result.geminiApiKey
             );
-            resultDiv.innerText = summary;
-          } catch (error) {
-            resultDiv.innerText = `Error: ${
-              error.message || "Failed to generate summary."
-            }`;
+            resultDiv.innerText = hint;
+          } catch (err) {
+            resultDiv.innerText = err.message;
           }
         }
       );
@@ -41,78 +39,31 @@ document.getElementById("hint").addEventListener("click", async () => {
 });
 
 document.getElementById("copy-btn").addEventListener("click", () => {
-  const summaryText = document.getElementById("result").innerText;
-
-  if (summaryText && summaryText.trim() !== "") {
-    navigator.clipboard
-      .writeText(summaryText)
-      .then(() => {
-        const copyBtn = document.getElementById("copy-btn");
-        const originalText = copyBtn.innerText;
-
-        copyBtn.innerText = "Copied!";
-        setTimeout(() => {
-          copyBtn.innerText = originalText;
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  }
+  const text = document.getElementById("result").innerText;
+  if (text.trim()) navigator.clipboard.writeText(text);
 });
 
-async function getGeminiSummary(text, summaryType, apiKey) {
-  // Truncate very long texts to avoid API limits (typically around 30K tokens)
-  const maxLength = 20000;
-  const truncatedText =
-    text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+async function getGeminiHint(text, type, apiKey) {
+  const truncated = text.slice(0, 20000);
 
-  let prompt;
-  switch (summaryType) {
-    case "brief":
-      prompt = `Provide a brief Hint of the current question in 2-3 sentences:\n\n${truncatedText}`;
-      break;
-    case "detailed":
-      prompt = `Provide a detailed Hint of the current question, covering all main points and key details:\n\n${truncatedText}`;
-      break;
-    case "bullets":
-      prompt = `Give Hint the current question in 2-3 key points. Format each point as a line starting with "- " (dash followed by a space). Do not use asterisks or other bullet symbols, only use the dash. Keep each point concise and focused on a single key insight from the article:\n\n${truncatedText}`;
-      break;
-    default:
-      prompt = `Hint on current question:\n\n${truncatedText}`;
-  }
+  let prompt = {
+    brief: "Give a brief hint (2–3 sentences).",
+    detailed: "Give a detailed hint without solution.",
+    bullets: "Give 2–3 bullet point hints."
+  }[type];
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-          },
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error?.message || "API request failed");
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${prompt}\n\n${truncated}` }] }],
+        generationConfig: { temperature: 0.2 }
+      })
     }
+  );
 
-    const data = await res.json();
-    return (
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No summary available."
-    );
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to generate summary. Please try again later.");
-  }
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No hint generated.";
 }

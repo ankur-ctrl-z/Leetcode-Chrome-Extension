@@ -1,7 +1,10 @@
 chrome.runtime.onInstalled.addListener(() => {
-   chrome.storage.sync.get(["geminiApiKey"], () => {
-    if(!result.geminiApikey) {
-        chrome.tabs.create({url: "options.html"});
+  chrome.storage.sync.get(["geminiApiKey"], (result) => {
+    if (!result.geminiApiKey) {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL("options.html")
+      });
     }
-   }) 
-})
+  });
+});
+
