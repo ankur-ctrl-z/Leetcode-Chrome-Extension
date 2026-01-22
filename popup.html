@@ -1,36 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>LeetCode Hint</title>
-  <style>
-    body { font-family: Arial; min-width: 450px; padding: 15px; }
-    button { padding: 8px 12px; cursor: pointer; }
-    #result { margin-top: 10px; white-space: pre-wrap; }
-  </style>
-</head>
-<body>
-  <h3>Ask Hint</h3>
-
-  <select id="hint-type">
-    <option value="brief">Brief</option>
-    <option value="detailed">Detailed</option>
-    <option value="bullets">Bullet Points</option>
-  </select>
-
-  <button id="hint">Get Hint</button>
-  <button id="copy-btn">Copy</button>
-
-  <pre id="result">Select a type and click Get Hint…</pre>
-
-  <script src="popup.js"></script>
-</body>
-</html>
-
-
-
-
-       <!-- <style>
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leetcode Helper</title>
+        <style>
       body {
         font-family: Arial, sans-serif;
         min-width: 500px;
@@ -121,4 +95,23 @@
           transform: rotate(360deg);
         }
       }
-    </style> -->
+    </style>
+</head>
+<body style="min-width: 200px; padding: 10px; font-family: sans-serif;">
+    <h2>Ask Hint for Question</h2>
+    <div class="options">
+    <select id="Hint-type">
+        <option value="brief">Brief</option>
+        <option value="detailed">Detailed</option>
+        <option value="bullets">Bullet Points</option>
+    </select>
+
+        <button id="hint">Get Hint</button>
+        <button id="copy-btn">Copy</button>
+    </div>
+
+    <pre id="result">Select a type and click Get Hint...</pre>
+
+    <script src="popup.js"></script>
+</body>
+</html>

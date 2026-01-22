@@ -1,32 +1,30 @@
 {
-  "manifest_version": 3,
-  "name": "LeetCode Hint Helper",
-  "version": "1.0",
+    "name": "Leetcode chrome extension",
+    "manifest_version" : 3,
+    "version" : "1.0",
 
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
+    "permission" : ["scripting", "activeTab", "storage"],
+    "host_permission" : [
+        "https://leetcode.com/*"
+    ],
 
-  "host_permissions": [
-    "https://leetcode.com/*"
-  ],
+    "action" : {
+        "default_popup" : "popup.html",
+        "default_icon" : "icon.png"
+    },
 
-  "background": {
-    "service_worker": "background.js"
-  },
+    "content_script" : [
+        {
+            "matches": ["<all_urls"],
+             "js" : ["content.js"]
+        }
+    ],
 
-  "action": {
-    "default_popup": "popup.html"
-  },
+    "background" : {
+        "service_worker" : "background.js"
+    },
 
-  "content_scripts": [
-    {
-      "matches": ["https://leetcode.com/*"],
-      "js": ["content.js"]
-    }
-  ],
+    "options_page" : "options.html"
 
-  "options_page": "options.html"
+
 }
