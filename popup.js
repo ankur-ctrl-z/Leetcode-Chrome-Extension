@@ -1,16 +1,15 @@
-document.getElementById("summarize").addEventListener("click", async () => {
+document.getElementById("hint").addEventListener("click", async () => {
   const resultDiv = document.getElementById("result");
   resultDiv.innerHTML = '<div class="loading"><div class="loader"></div></div>';
 
-  const summaryType = document.getElementById("summary-type").value;
+  const Hint_Type = document.getElementById("Hint-type").value;
 
-  // Get API key from storage
   chrome.storage.sync.get(["geminiApiKey"], async (result) => {
     if (!result.geminiApiKey) {
       resultDiv.innerHTML =
         "API key not found. Please set your API key in the extension options.";
       return;
-    }
+    } 
 
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       chrome.tabs.sendMessage(
@@ -26,7 +25,7 @@ document.getElementById("summarize").addEventListener("click", async () => {
           try {
             const summary = await getGeminiSummary(
               res.text,
-              summaryType,
+              Hint_Type,
               result.geminiApiKey
             );
             resultDiv.innerText = summary;
@@ -71,16 +70,16 @@ async function getGeminiSummary(text, summaryType, apiKey) {
   let prompt;
   switch (summaryType) {
     case "brief":
-      prompt = `Provide a brief summary of the following article in 2-3 sentences:\n\n${truncatedText}`;
+      prompt = `Provide a brief Hint of the current question in 2-3 sentences:\n\n${truncatedText}`;
       break;
     case "detailed":
-      prompt = `Provide a detailed summary of the following article, covering all main points and key details:\n\n${truncatedText}`;
+      prompt = `Provide a detailed Hint of the current question, covering all main points and key details:\n\n${truncatedText}`;
       break;
     case "bullets":
-      prompt = `Summarize the following article in 5-7 key points. Format each point as a line starting with "- " (dash followed by a space). Do not use asterisks or other bullet symbols, only use the dash. Keep each point concise and focused on a single key insight from the article:\n\n${truncatedText}`;
+      prompt = `Give Hint the current question in 2-3 key points. Format each point as a line starting with "- " (dash followed by a space). Do not use asterisks or other bullet symbols, only use the dash. Keep each point concise and focused on a single key insight from the article:\n\n${truncatedText}`;
       break;
     default:
-      prompt = `Summarize the following article:\n\n${truncatedText}`;
+      prompt = `Hint on current question:\n\n${truncatedText}`;
   }
 
   try {

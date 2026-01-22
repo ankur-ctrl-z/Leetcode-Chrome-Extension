@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         chrome.storage.sync.set({geminiApiKey:apikey}, () => {
             document.getElementById("success-message").style.display = "block";
-            setTimeout(() => window.close(),1000);
+            setTimeout(() => window.close(),1500);
         })
     })
 })

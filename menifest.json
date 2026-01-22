@@ -4,6 +4,9 @@
     "version" : "1.0",
 
     "permission" : ["scripting", "activeTab", "storage"],
+    "host_permission" : [
+        "https://leetcode.com/*"
+    ],
 
     "action" : {
         "default_popup" : "popup.html",
@@ -21,7 +24,7 @@
         "service_worker" : "background.js"
     },
 
-    "options_page" : "options.html",
+    "options_page" : "options.html"
 
-    "host_permission" : ["<all_urls"]
+
 }
