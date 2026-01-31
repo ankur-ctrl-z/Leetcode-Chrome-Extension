@@ -10,8 +10,10 @@
   ],
 
   "host_permissions": [
-    "https://leetcode.com/*"
+    "https://leetcode.com/*",
+    "https://generativelanguage.googleapis.com/*"
   ],
+
 
   "background": {
     "service_worker": "background.js"
