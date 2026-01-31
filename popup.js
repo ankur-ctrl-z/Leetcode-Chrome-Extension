@@ -4,40 +4,40 @@ document.getElementById("hint").addEventListener("click", async () => {
 
   const Hint_Type = document.getElementById("Hint-type").value;
 
-  chrome.storage.sync.get(["geminiApiKey"], async (result) => {
-    if (!result.geminiApiKey) {
-      resultDiv.innerHTML =
-        "API key not found. Please set your API key in the extension options.";
-      return;
-    } 
+  const storage = await chrome.storage.sync.get(["geminiApiKey"]);
 
-    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-      chrome.tabs.sendMessage(
-        tab.id,
-        { type: "GET_ARTICLE_TEXT" },
-        async (res) => {
-          if (!res || !res.text) {
-            resultDiv.innerText =
-              "Could not extract article text from this page.";
-            return;
-          }
+  if (!storage.geminiApiKey) {
+    resultDiv.innerText =
+      "API key not found. Please set your API key in the extension options.";
+    return;
+  }
 
-          try {
-            const summary = await getGeminiSummary(
-              res.text,
-              Hint_Type,
-              result.geminiApiKey
-            );
-            resultDiv.innerText = summary;
-          } catch (error) {
-            resultDiv.innerText = `Error: ${
-              error.message || "Failed to generate summary."
-            }`;
-          }
-        }
-      );
-    });
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
   });
+
+  const res = await chrome.tabs.sendMessage(tab.id, {
+    type: "GET_ARTICLE_TEXT",
+  });
+
+  if (!res || !res.text) {
+    resultDiv.innerText =
+      "Could not extract article text from this page.";
+    return;
+  }
+
+  try {
+    const summary = await getGeminiSummary(
+      res.text,
+      Hint_Type,
+      storage.geminiApiKey
+    );
+    resultDiv.innerText = summary;
+  } catch (error) {
+    resultDiv.innerText =
+      error.message || "Failed to generate summary.";
+  }
 });
 
 document.getElementById("copy-btn").addEventListener("click", () => {
