@@ -4,7 +4,7 @@ function getArticleText() {
 
   const paragraphs = Array.from(document.querySelectorAll("p"));
   return paragraphs.map(p => p.innerText).join("\n");
-}
+} 
 
 chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
   if (req.type === "GET_ARTICLE_TEXT") {
@@ -13,3 +13,4 @@ chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
   }
   return true; 
 });
+ 
