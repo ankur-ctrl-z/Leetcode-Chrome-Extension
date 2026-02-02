@@ -5,7 +5,6 @@ document.getElementById("hint").addEventListener("click", async () => {
   const Hint_Type = document.getElementById("Hint-type").value;
 
   const storage = await chrome.storage.sync.get(["geminiApiKey"]);
-
   if (!storage.geminiApiKey) {
     resultDiv.innerText =
       "API key not found. Please set your API key in the extension options.";
@@ -17,9 +16,16 @@ document.getElementById("hint").addEventListener("click", async () => {
     currentWindow: true,
   });
 
-  const res = await chrome.tabs.sendMessage(tab.id, {
-    type: "GET_ARTICLE_TEXT",
-  });
+  let res;
+  try {
+    res = await chrome.tabs.sendMessage(tab.id, {
+      type: "GET_ARTICLE_TEXT",
+    });
+  } catch {
+    resultDiv.innerText =
+      "Open a LeetCode problem page and refresh it once.";
+    return;
+  }
 
   if (!res || !res.text) {
     resultDiv.innerText =
@@ -39,6 +45,7 @@ document.getElementById("hint").addEventListener("click", async () => {
       error.message || "Failed to generate summary.";
   }
 });
+
 
 document.getElementById("copy-btn").addEventListener("click", () => {
   const summaryText = document.getElementById("result").innerText;
@@ -84,13 +91,14 @@ async function getGeminiSummary(text, summaryType, apiKey) {
 
   try {
 const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`,
+  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [
         {
+          role: "user",
           parts: [{ text: prompt }],
         },
       ],
@@ -114,6 +122,6 @@ const res = await fetch(
     );
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to generate summary. Please try again later.");
+    throw new Error("Failed to generate hints. Please try again later.");
   }
 }
