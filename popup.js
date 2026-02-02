@@ -41,11 +41,9 @@ document.getElementById("hint").addEventListener("click", async () => {
     );
     resultDiv.innerText = summary;
   } catch (error) {
-    resultDiv.innerText =
-      error.message || "Failed to generate summary.";
+    resultDiv.innerText = error.message || "Failed to generate summary.";
   }
 });
-
 
 document.getElementById("copy-btn").addEventListener("click", () => {
   const summaryText = document.getElementById("result").innerText;
@@ -69,7 +67,6 @@ document.getElementById("copy-btn").addEventListener("click", () => {
 });
 
 async function getGeminiSummary(text, summaryType, apiKey) {
-  // Truncate very long texts to avoid API limits (typically around 30K tokens)
   const maxLength = 20000;
   const truncatedText =
     text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
@@ -90,25 +87,23 @@ async function getGeminiSummary(text, summaryType, apiKey) {
   }
 
   try {
-const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: prompt }],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.2,
-      },
-    }),
-  }
-);
-
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.2,
+          },
+        }),
+      }
+    );
 
     if (!res.ok) {
       const errorData = await res.json();
@@ -122,6 +117,6 @@ const res = await fetch(
     );
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to generate hints. Please try again later.");
+    throw new Error(`Gemini API Error: ${error.message}`);
   }
 }
