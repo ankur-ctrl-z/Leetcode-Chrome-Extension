@@ -1,26 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Load saved key
-  chrome.storage.sync.get(["geminiApiKey"], ({ geminiApiKey }) => {
-    if (geminiApiKey) {
-      document.getElementById("api-key").value = geminiApiKey;
-    }
+  chrome.storage.sync.get(["groqApiKey"], (data) => {
+    if (data.groqApiKey) document.getElementById("api-key").value = data.groqApiKey;
   });
 
-  // Save button logic
-  document.getElementById("save-button").addEventListener("click", () => {
-    const apikey = document.getElementById("api-key").value.trim();
-    if (!apikey) {
-      alert("Please enter a valid API key.");
-      return;
-    }
+  document.getElementById("save-btn").addEventListener("click", () => {
+    const key = document.getElementById("api-key").value.trim();
+    if (!key) return;
 
-    chrome.storage.sync.set({ geminiApiKey: apikey }, () => {
-      const status = document.getElementById("success-message");
-      status.style.display = "block";
-      status.innerText = "Settings saved!";
-      setTimeout(() => {
-        status.style.display = "none";
-      }, 2000);
+    chrome.storage.sync.set({ groqApiKey: key }, () => {
+      document.getElementById("status").style.display = "block";
+      setTimeout(() => window.close(), 1000);
     });
   });
 });

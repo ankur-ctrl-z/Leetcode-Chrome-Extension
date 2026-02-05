@@ -1,36 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-<head> 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leetcode Coach</title>
-    <style>
-      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 350px; padding: 15px; background-color: #f4f4f4; margin: 0; }
-      h2 { color: #333; margin-top: 0; text-align: center; font-size: 18px; }
-      .controls { display: flex; gap: 8px; margin-bottom: 15px; }
-      select { flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-      button { padding: 8px 12px; background-color: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; }
-      button:hover { background-color: #3367d6; }
-      #copy-btn { background-color: #34a853; }
-      #copy-btn:hover { background-color: #2e8b57; }
-      #result { background: white; padding: 15px; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.5; color: #333; white-space: pre-wrap; }
-      .loading { display: flex; justify-content: center; padding: 20px; }
-      .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+<html>
+<head>
+  <style>
+    body { font-family: sans-serif; width: 350px; padding: 15px; background: #1a1a1a; color: white; }
+    h2 { font-size: 16px; margin-top: 0; color: #ffa116; }
+    .controls { display: flex; gap: 8px; margin-bottom: 12px; }
+    select, button { padding: 8px; border-radius: 4px; border: none; font-weight: bold; }
+    select { flex: 1; background: #333; color: white; }
+    button { background: #ffa116; color: black; cursor: pointer; }
+    button:hover { background: #e69115; }
+    #copy-btn { background: #34a853; color: white; }
+    #result { 
+      background: #282828; padding: 12px; border: 1px solid #444; border-radius: 4px; 
+      min-height: 120px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-size: 13px; line-height: 1.4;
+    }
+    .loader { border: 3px solid #f3f3f3; border-top: 3px solid #ffa116; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-    <h2>LeetCode Coach</h2>
-    <div class="controls">
-        <select id="Hint-type">
-            <option value="brief">Brief Hint</option>
-            <option value="detailed">Detailed Analysis</option>
-            <option value="bullets">Key Points</option>
-        </select>
-        <button id="hint">Ask AI</button>
-        <button id="copy-btn">Copy</button>
-    </div>
-    <div id="result">Select a type and ask the coach...</div>
-    <script src="popup.js"></script>
+  <h2>LeetCode Brutal Coach</h2>
+  <div class="controls">
+    <select id="Hint-type">
+      <option value="brief">Brief Hint</option>
+      <option value="detailed">Detailed Analysis</option>
+      <option value="bullets">Key Points</option>
+    </select>
+    <button id="hint">Get Hint</button>
+    <button id="copy-btn">Copy</button>
+  </div>
+  <div id="result">Ready to roast your logic...</div>
+  <script src="popup.js"></script>
 </body>
 </html>

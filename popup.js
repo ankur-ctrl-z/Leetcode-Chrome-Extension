@@ -1,113 +1,67 @@
 document.getElementById("hint").addEventListener("click", async () => {
   const resultDiv = document.getElementById("result");
-  const Hint_Type = document.getElementById("Hint-type").value;
-  
-  resultDiv.innerHTML = '<div class="loading"><div class="loader"></div></div>';
+  const type = document.getElementById("Hint-type").value;
+  resultDiv.innerHTML = '<div class="loader"></div>';
 
-  const storage = await chrome.storage.sync.get(["geminiApiKey"]);
-  if (!storage.geminiApiKey) {
-    resultDiv.innerText = "API key not found. Set it in the extension options.";
+  const storage = await chrome.storage.sync.get(["groqApiKey"]);
+  if (!storage.groqApiKey) {
+    resultDiv.innerText = "Error: API Key missing. Go to Options.";
     return;
   }
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  let res;
-  try {
-    // This expects the content script to return both { text, code }
-    res = await chrome.tabs.sendMessage(tab.id, { type: "GET_PROBLEM_DATA" });
-  } catch (error) {
-    resultDiv.innerText = "Open LeetCode and refresh the page.";
-    return;
-  }
-
-  if (!res || !res.text) {
-    resultDiv.innerText = "Could not extract data from this page.";
-    return;
-  }
-
-  try {
-    const summary = await getGeminiSummary(
-      res.text,
-      res.code,
-      Hint_Type,
-      storage.geminiApiKey
-    );
-    resultDiv.innerText = summary;
-  } catch (error) {
-    resultDiv.innerText = error.message;
-  }
-});
-
-document.getElementById("copy-btn").addEventListener("click", () => {
-  const summaryText = document.getElementById("result").innerText;
-  if (summaryText?.trim()) {
-    navigator.clipboard.writeText(summaryText).then(() => {
-      const copyBtn = document.getElementById("copy-btn");
-      const originalText = copyBtn.innerText;
-      copyBtn.innerText = "Copied!";
-      setTimeout(() => (copyBtn.innerText = originalText), 2000);
-    });
-  }
-});
-
-async function getGeminiSummary(problemText, userCode, hintType, apiKey) {
-  const truncatedProblem = problemText.length > 15000 ? problemText.substring(0, 15000) + "..." : problemText;
   
-  // Logic to check if user has actually written code (excluding default boilerplates)
-  const hasCode = userCode && userCode.trim().length > 60; 
+  try {
+    const res = await chrome.tabs.sendMessage(tab.id, { type: "GET_PROBLEM_DATA" });
+    if (!res || !res.text) throw new Error("Could not read LeetCode data.");
 
-  let contextPrompt = "";
-  if (!hasCode) {
-    contextPrompt = "The user has not written any code yet. Provide a high-level starting strategy to approach this problem. Do not provide code.";
-  } else {
-    contextPrompt = `The user has written this code:\n\n${userCode}\n\nAnalyze it. Point out the logical flaw or the specific next step they are missing. Do not give the full solution code. Be direct and call out bad logic if you see it.`;
+    const hint = await fetchGroqHint(res.text, res.code, type, storage.groqApiKey);
+    resultDiv.innerText = hint;
+  } catch (err) {
+    resultDiv.innerText = err.message;
   }
+});
 
-  let formatPrompt = "";
-  switch (hintType) {
-    case "brief":
-      formatPrompt = "Limit the response to 2 sentences.";
-      break;
-    case "detailed":
-      formatPrompt = "Provide a deep-dive explanation of the logic and edge cases.";
-      break;
-    case "bullets":
-      formatPrompt = "Provide 2-3 key insights using only '-' as bullets.";
-      break;
-    default:
-      formatPrompt = "Provide a clear, helpful hint.";
-  }
-
-  const finalPrompt = `
-    Problem:
-    ${truncatedProblem}
-
-    Context:
-    ${contextPrompt}
-
-    Constraint:
-    ${formatPrompt} 
-    Tone: Brutally honest coach. No fluff. No spoilers.
+async function fetchGroqHint(problem, code, type, apiKey) {
+  const isStuck = code && code.trim().length > 50;
+  
+  const systemPrompt = "You are a brutally honest LeetCode coach. Your goal is to make the user better, not make them feel good. Never give full code solutions. Challenge their logic and call out flaws directly.";
+  
+  const userPrompt = `
+    PROBLEM: ${problem}
+    USER_CODE: ${isStuck ? code : "None (User hasn't started)"}
+    HINT_TYPE: ${type}
+    
+    INSTRUCTION: ${isStuck 
+      ? "Find the flaw in their code and give a hint for the next step." 
+      : "Give a high-level logical strategy to start."} 
+    Do not provide the full solution. Keep it straightforward.
   `;
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: finalPrompt }] }],
-        generationConfig: { temperature: 0.2 },
-      }),
-    }
-  );
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      temperature: 0.2
+    })
+  });
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error?.message || "API request failed");
-  }
-
-  const data = await res.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No hint available.";
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error?.message || "Groq API Failed");
+  return data.choices[0].message.content;
 }
+
+document.getElementById("copy-btn").addEventListener("click", () => {
+  navigator.clipboard.writeText(document.getElementById("result").innerText);
+  const btn = document.getElementById("copy-btn");
+  btn.innerText = "Saved!";
+  setTimeout(() => btn.innerText = "Copy", 2000);
+});

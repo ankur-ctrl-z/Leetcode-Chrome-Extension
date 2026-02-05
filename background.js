@@ -1,7 +1,5 @@
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.get(["geminiApiKey"], (result) => {
-    if (!result.geminiApiKey) {
-      chrome.runtime.openOptionsPage();
-    }
+  chrome.storage.sync.get(["groqApiKey"], (data) => {
+    if (!data.groqApiKey) chrome.runtime.openOptionsPage();
   });
 });
