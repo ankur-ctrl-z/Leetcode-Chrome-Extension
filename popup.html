@@ -2,84 +2,20 @@
 <html>
 <head>
   <style>
-    /* Default (Light Mode) */
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #333333;
-      --card-bg: #f3f3f3;
-      --border-color: #cccccc;
-      --accent-color: #ffa116;
-      --btn-text: #000000;
-    }
+    :root { --bg: #fff; --txt: #333; --card: #f3f3f3; --brd: #ccc; --acc: #ffa116; }
+    [data-theme="dark"] { --bg: #1a1a1a; --txt: #fff; --card: #282828; --brd: #444; --acc: #ffa116; }
 
-    /* Dark Mode Variables */
-    [data-theme="dark"] {
-      --bg-color: #1a1a1a;
-      --text-color: #ffffff;
-      --card-bg: #282828;
-      --border-color: #444444;
-      --accent-color: #ffa116;
-      --btn-text: #000000;
-    }
-
-    body { 
-      font-family: sans-serif; 
-      width: 350px; 
-      padding: 15px; 
-      background: var(--bg-color); 
-      color: var(--text-color);
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    h2 { font-size: 16px; margin: 0; color: var(--accent-color); }
-    
-    .theme-toggle {
-      background: none;
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      cursor: pointer;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 12px;
-    }
-
+    body { font-family: sans-serif; width: 350px; padding: 15px; background: var(--bg); color: var(--txt); transition: 0.2s; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    h2 { font-size: 16px; margin: 0; color: var(--acc); }
+    .theme-toggle { background: none; border: 1px solid var(--brd); color: var(--txt); cursor: pointer; font-size: 11px; padding: 4px 8px; border-radius: 12px; }
     .controls { display: flex; gap: 8px; margin-bottom: 12px; }
-    
-    select, button { 
-      padding: 8px; 
-      border-radius: 4px; 
-      border: 1px solid var(--border-color); 
-      font-weight: bold; 
-    }
-    
-    select { flex: 1; background: var(--card-bg); color: var(--text-color); }
-    
-    #hint { background: var(--accent-color); color: var(--btn-text); border: none; cursor: pointer; }
-    #hint:hover { background: #e69115; }
-    
-    #copy-btn { background: #34a853; color: white; border: none; cursor: pointer; }
-
-    #result { 
-      background: var(--card-bg); 
-      padding: 12px; 
-      border: 1px solid var(--border-color); 
-      border-radius: 4px; 
-      min-height: 120px; 
-      max-height: 300px; 
-      overflow-y: auto; 
-      white-space: pre-wrap; 
-      font-size: 13px; 
-      line-height: 1.4;
-    }
-
-    .loader { border: 3px solid var(--card-bg); border-top: 3px solid var(--accent-color); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: auto; }
+    select, button { padding: 8px; border-radius: 4px; border: 1px solid var(--brd); font-weight: bold; }
+    select { flex: 1; background: var(--card); color: var(--txt); }
+    #hint { background: var(--acc); color: #000; border: none; cursor: pointer; }
+    #copy-btn { background: #34a853; color: #fff; border: none; cursor: pointer; }
+    #result { background: var(--card); padding: 12px; border: 1px solid var(--brd); border-radius: 4px; min-height: 100px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-size: 13px; line-height: 1.4; }
+    .loader { border: 3px solid var(--card); border-top: 3px solid var(--acc); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: auto; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -88,17 +24,15 @@
     <h2>LeetCode Assistant</h2>
     <button id="theme-btn" class="theme-toggle">🌗 Theme</button>
   </div>
-
   <div class="controls">
     <select id="Hint-type">
-      <option value="brief">Brief Hint</option>
+      <option value="short">Short Hint</option>
       <option value="detailed">Detailed Analysis</option>
       <option value="bullets">Key Points</option>
     </select>
     <button id="hint">Get Hint</button>
     <button id="copy-btn">Copy</button>
   </div>
-
   <div id="result">Choose hint type and click "Get Hint"</div>
   <script src="popup.js"></script>
 </body>
