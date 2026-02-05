@@ -1,21 +1,33 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  const themeCheckbox = document.getElementById("theme-checkbox");
+  const resultDiv = document.getElementById("result");
+  
+  // 1. Load Settings
   const storage = await chrome.storage.sync.get(["theme", "groqApiKey"]);
-  if (storage.theme === "dark") document.body.setAttribute("data-theme", "dark");
+  
+  // Apply Dark Mode if saved
+  if (storage.theme === "dark") {
+    document.body.setAttribute("data-theme", "dark");
+    themeCheckbox.checked = true;
+  }
 
-  document.getElementById("theme-btn").addEventListener("click", () => {
-    const isDark = document.body.getAttribute("data-theme") === "dark";
-    const newTheme = isDark ? "light" : "dark";
-    if (isDark) document.body.removeAttribute("data-theme");
-    else document.body.setAttribute("data-theme", "dark");
-    chrome.storage.sync.set({ theme: newTheme });
+  // 2. Theme Toggle Logic
+  themeCheckbox.addEventListener("change", () => {
+    if (themeCheckbox.checked) {
+      document.body.setAttribute("data-theme", "dark");
+      chrome.storage.sync.set({ theme: "dark" });
+    } else {
+      document.body.removeAttribute("data-theme");
+      chrome.storage.sync.set({ theme: "light" });
+    }
   });
 
+  // 3. Hint Logic
   document.getElementById("hint").addEventListener("click", async () => {
-    const resultDiv = document.getElementById("result");
     const type = document.getElementById("Hint-type").value;
     
     if (!storage.groqApiKey) {
-      resultDiv.innerText = "Error: API Key missing in Options.";
+      resultDiv.innerText = "Error: API Key missing. Check Options.";
       return;
     }
 
@@ -31,11 +43,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  // 4. Copy Logic
   document.getElementById("copy-btn").addEventListener("click", () => {
-    navigator.clipboard.writeText(document.getElementById("result").innerText);
+    navigator.clipboard.writeText(resultDiv.innerText);
     const btn = document.getElementById("copy-btn");
-    btn.innerText = "Saved!";
-    setTimeout(() => btn.innerText = "Copy", 2000);
+    btn.innerText = "Copied!";
+    setTimeout(() => btn.innerText = "Copy", 1500);
   });
 });
 
@@ -45,11 +58,11 @@ async function fetchGroqHint(problem, code, type, apiKey) {
   
   let instruction = "";
   if (type === "short") {
-    instruction = "Provide a 'Short Hint'. This must be EXACTLY one short sentence. Identify the single biggest logic error or the very next step. No extra words.";
+    instruction = "Provide a 'Short Hint'. Exactly one short sentence pointing out the immediate logic gap. No fluff.";
   } else if (type === "detailed") {
-    instruction = "Provide a detailed analysis of the logic, complexity, and missing edge cases.";
+    instruction = "Provide a deep-dive analysis of the logic and missing edge cases.";
   } else {
-    instruction = "Give 2-3 technical key points using '-' bullets.";
+    instruction = "Provide 3 technical key points using '-' bullets.";
   }
 
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
