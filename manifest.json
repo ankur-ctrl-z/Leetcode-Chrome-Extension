@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LeetCode Assistant",
-  "version": "1.4",
-  "description": "Direct and logical guidance for LeetCode.",
+  "version": "1.5",
+  "description": "Your direct and logical LeetCode coding assistant.",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": [
     "https://*.leetcode.com/problems/*",
@@ -10,11 +10,11 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "128": "leetcode-icon.webp"
-    }
+    "default_icon": "leetcode-icon.webp"
   },
   "icons": {
+    "16": "leetcode-icon.webp",
+    "48": "leetcode-icon.webp",
     "128": "leetcode-icon.webp"
   },
   "options_page": "options.html",
