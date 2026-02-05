@@ -2,34 +2,29 @@
   "manifest_version": 3,
   "name": "LeetCode Hint Helper",
   "version": "1.0",
-
   "permissions": [
     "storage",
     "activeTab",
     "scripting"
   ],
-
   "host_permissions": [
-    "https://leetcode.com/*",
+    "https://*.leetcode.com/problems/*",
     "https://generativelanguage.googleapis.com/*"
   ],
-
-
   "background": {
     "service_worker": "background.js"
   },
-
   "action": {
     "default_popup": "popup.html"
   },
-
   "content_scripts": [
     {
-      "matches": ["https://leetcode.com/*","https://www.leetcode.com/*"],
+      "matches": [
+        "https://leetcode.com/problems/*",
+        "https://www.leetcode.com/problems/*"
+      ],
       "js": ["content.js"]
     }
   ],
-
   "options_page": "options.html"
 }
-

@@ -1,122 +1,113 @@
 document.getElementById("hint").addEventListener("click", async () => {
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = '<div class="loading"><div class="loader"></div></div>';
-
   const Hint_Type = document.getElementById("Hint-type").value;
+  
+  resultDiv.innerHTML = '<div class="loading"><div class="loader"></div></div>';
 
   const storage = await chrome.storage.sync.get(["geminiApiKey"]);
   if (!storage.geminiApiKey) {
-    resultDiv.innerText =
-      "API key not found. Please set your API key in the extension options.";
+    resultDiv.innerText = "API key not found. Set it in the extension options.";
     return;
   }
 
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   let res;
   try {
-    res = await chrome.tabs.sendMessage(tab.id, {
-      type: "GET_ARTICLE_TEXT",
-    });
-  } catch {
-    resultDiv.innerText =
-      "Open a LeetCode problem page and refresh it once.";
+    // This expects the content script to return both { text, code }
+    res = await chrome.tabs.sendMessage(tab.id, { type: "GET_PROBLEM_DATA" });
+  } catch (error) {
+    resultDiv.innerText = "Open LeetCode and refresh the page.";
     return;
   }
 
   if (!res || !res.text) {
-    resultDiv.innerText =
-      "Could not extract article text from this page.";
+    resultDiv.innerText = "Could not extract data from this page.";
     return;
   }
 
   try {
     const summary = await getGeminiSummary(
       res.text,
+      res.code,
       Hint_Type,
       storage.geminiApiKey
     );
     resultDiv.innerText = summary;
   } catch (error) {
-    resultDiv.innerText = error.message || "Failed to generate summary.";
+    resultDiv.innerText = error.message;
   }
 });
 
 document.getElementById("copy-btn").addEventListener("click", () => {
   const summaryText = document.getElementById("result").innerText;
-
-  if (summaryText && summaryText.trim() !== "") {
-    navigator.clipboard
-      .writeText(summaryText)
-      .then(() => {
-        const copyBtn = document.getElementById("copy-btn");
-        const originalText = copyBtn.innerText;
-
-        copyBtn.innerText = "Copied!";
-        setTimeout(() => {
-          copyBtn.innerText = originalText;
-        }, 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
+  if (summaryText?.trim()) {
+    navigator.clipboard.writeText(summaryText).then(() => {
+      const copyBtn = document.getElementById("copy-btn");
+      const originalText = copyBtn.innerText;
+      copyBtn.innerText = "Copied!";
+      setTimeout(() => (copyBtn.innerText = originalText), 2000);
+    });
   }
 });
 
-async function getGeminiSummary(text, summaryType, apiKey) {
-  const maxLength = 20000;
-  const truncatedText =
-    text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+async function getGeminiSummary(problemText, userCode, hintType, apiKey) {
+  const truncatedProblem = problemText.length > 15000 ? problemText.substring(0, 15000) + "..." : problemText;
+  
+  // Logic to check if user has actually written code (excluding default boilerplates)
+  const hasCode = userCode && userCode.trim().length > 60; 
 
-  let prompt;
-  switch (summaryType) {
+  let contextPrompt = "";
+  if (!hasCode) {
+    contextPrompt = "The user has not written any code yet. Provide a high-level starting strategy to approach this problem. Do not provide code.";
+  } else {
+    contextPrompt = `The user has written this code:\n\n${userCode}\n\nAnalyze it. Point out the logical flaw or the specific next step they are missing. Do not give the full solution code. Be direct and call out bad logic if you see it.`;
+  }
+
+  let formatPrompt = "";
+  switch (hintType) {
     case "brief":
-      prompt = `Provide a brief Hint of the current question in 2-3 sentences:\n\n${truncatedText}`;
+      formatPrompt = "Limit the response to 2 sentences.";
       break;
     case "detailed":
-      prompt = `Provide a detailed Hint of the current question, covering all main points and key details:\n\n${truncatedText}`;
+      formatPrompt = "Provide a deep-dive explanation of the logic and edge cases.";
       break;
     case "bullets":
-      prompt = `Give Hint the current question in 2-3 key points. Format each point as a line starting with "- " (dash followed by a space). Do not use asterisks or other bullet symbols, only use the dash. Keep each point concise and focused on a single key insight from the article:\n\n${truncatedText}`;
+      formatPrompt = "Provide 2-3 key insights using only '-' as bullets.";
       break;
     default:
-      prompt = `Hint on current question:\n\n${truncatedText}`;
+      formatPrompt = "Provide a clear, helpful hint.";
   }
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-          },
-        }),
-      }
-    );
+  const finalPrompt = `
+    Problem:
+    ${truncatedProblem}
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error?.message || "API request failed");
+    Context:
+    ${contextPrompt}
+
+    Constraint:
+    ${formatPrompt} 
+    Tone: Brutally honest coach. No fluff. No spoilers.
+  `;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: finalPrompt }] }],
+        generationConfig: { temperature: 0.2 },
+      }),
     }
+  );
 
-    const data = await res.json();
-    return (
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No summary available."
-    );
-  } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    throw new Error(`Gemini API Error: ${error.message}`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error?.message || "API request failed");
   }
+
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No hint available.";
 }
