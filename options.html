@@ -4,16 +4,26 @@
   <style>
     body { font-family: sans-serif; padding: 30px; max-width: 400px; margin: auto; background: #f4f4f4; }
     .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; color: #333; }
     input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { width: 100%; padding: 10px; background: #ffa116; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    .status { color: green; display: none; text-align: center; margin-top: 10px; }
+    button { width: 100%; padding: 10px; background: #ffa116; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: black; }
+    button:hover { background: #e69115; }
+    .status { color: green; display: none; text-align: center; margin-top: 10px; font-weight: bold; }
+    .info { font-size: 13px; color: #666; margin-bottom: 15px; }
+    .info a { color: #ffa116; text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>Coach Settings</h2>
+    <h2>Set Up Settings</h2>
+    
     <label>Groq API Key</label>
-    <input type="password" id="api-key" placeholder="Enter Groq Key...">
+    <input type="password" id="api-key" placeholder="Paste your Groq API key here...">
+    
+    <p class="info">
+      Need a key? <a href="https://console.groq.com/keys" target="_blank">Get it free here</a>.
+    </p>
+
     <button id="save-btn">Save & Close</button>
     <div id="status" class="status">Saved! Closing...</div>
   </div>

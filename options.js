@@ -5,7 +5,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("save-btn").addEventListener("click", () => {
     const key = document.getElementById("api-key").value.trim();
-    if (!key) return;
+    if (!key) {
+      alert("Please enter a valid API key.");
+      return;
+    }
 
     chrome.storage.sync.set({ groqApiKey: key }, () => {
       document.getElementById("status").style.display = "block";
