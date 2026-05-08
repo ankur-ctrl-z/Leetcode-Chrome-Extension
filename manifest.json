@@ -12,7 +12,7 @@
     "default_popup": "popup.html",
     "default_icon": "leetcode-icon.webp"
   },
-  "icons": {
+  "icons": { 
     "16": "leetcode-icon.webp",
     "48": "leetcode-icon.webp",
     "128": "leetcode-icon.webp"
