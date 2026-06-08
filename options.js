@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync.get(["groqApiKey"], (data) => {
-    if (data.groqApiKey) document.getElementById("api-key").value = data.groqApiKey;
+    if (data.groqApiKey)  document.getElementById("api-key").value = data.groqApiKey;
   });
 
   document.getElementById("save-btn").addEventListener("click", () => {
